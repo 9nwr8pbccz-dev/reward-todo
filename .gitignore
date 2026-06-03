@@ -10,3 +10,10 @@ data/
 logs/
 uploads/
 public/tunnel-url*.txt
+proxy-443.js
+proxy-*.pem
+public/tunnel-url*.txt
+backups/
+data/
+logs/
+uploads/
