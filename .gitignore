@@ -3,3 +3,10 @@ uploads/
 data/*.json
 .DS_Store
 *.log
+backups/
+*.pem
+tunnel-url*.txt
+data/
+logs/
+uploads/
+public/tunnel-url*.txt
