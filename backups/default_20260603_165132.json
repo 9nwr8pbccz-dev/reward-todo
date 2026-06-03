@@ -1,0 +1,40 @@
+{
+  "roomCode": "default",
+  "masterPassword": "5f966be30d1121a9b959efa057ee6406c04a8b5ac95cafc7b985e6e2d579391c",
+  "users": {
+    "test": {
+      "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+      "data": {
+        "tasks": [],
+        "deletedTasks": [],
+        "rewards": [
+          {
+            "id": "e7330ba4-db3c-4404-a806-b799346a9d0b",
+            "title": "看一部电影",
+            "cost": 50,
+            "icon": "🎬"
+          },
+          {
+            "id": "beec538a-fa0a-4e05-b9e7-2fdd22d4c5e6",
+            "title": "喝杯奶茶",
+            "cost": 30,
+            "icon": "🧋"
+          },
+          {
+            "id": "5771745f-23c4-4e38-955b-cdefcf3b0d03",
+            "title": "买一本新书",
+            "cost": 80,
+            "icon": "📚"
+          }
+        ],
+        "totalPoints": 0,
+        "lifetimePoints": 0,
+        "redeemedHistory": [],
+        "workSessions": []
+      },
+      "createdAt": "2026-06-03T06:29:45.179Z"
+    }
+  },
+  "createdAt": "2026-06-03T05:17:50.147Z",
+  "_updatedAt": "2026-06-03T06:29:45.179Z"
+}

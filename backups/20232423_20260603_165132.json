@@ -1,0 +1,60 @@
+{
+  "roomCode": "20232423",
+  "masterPassword": "5f966be30d1121a9b959efa057ee6406c04a8b5ac95cafc7b985e6e2d579391c",
+  "users": {
+    "山支": {
+      "password": "1c3a78f8f8fa6ab53463cd2b5edf31e3a4e6922ecdc6327c66529ddb9b4de6e2",
+      "data": {
+        "tasks": [
+          {
+            "id": "294453dc-68e1-4de1-bff8-fed2c652171a",
+            "title": "健身🏋️",
+            "description": "肩",
+            "deadline": "2026-06-03T15:00:00.000Z",
+            "completed": false,
+            "completedAt": null,
+            "points": 10,
+            "category": "health",
+            "workDuration": 0,
+            "createdAt": "2026-06-03T06:45:49.162Z"
+          }
+        ],
+        "deletedTasks": [],
+        "rewards": [
+          {
+            "id": "955e443c-2ca7-4744-8936-72969831deb7",
+            "title": "看一部电影",
+            "cost": 50,
+            "icon": "🎬"
+          },
+          {
+            "id": "ea624b9f-e6c7-467a-8665-d9e22c2a0699",
+            "title": "喝杯奶茶",
+            "cost": 30,
+            "icon": "🧋"
+          },
+          {
+            "id": "0ae39c6b-0a87-4c20-b8da-1191b5eb51ed",
+            "title": "买一本新书",
+            "cost": 80,
+            "icon": "📚"
+          }
+        ],
+        "totalPoints": 0,
+        "lifetimePoints": 30,
+        "redeemedHistory": [],
+        "workSessions": [
+          {
+            "taskId": "294453dc-68e1-4de1-bff8-fed2c652171a",
+            "title": "健身🏋️",
+            "duration": 0,
+            "date": "2026-06-03"
+          }
+        ]
+      },
+      "createdAt": "2026-06-03T06:43:53.080Z"
+    }
+  },
+  "createdAt": "2026-06-03T06:43:53.080Z",
+  "_updatedAt": "2026-06-03T06:45:57.791Z"
+}

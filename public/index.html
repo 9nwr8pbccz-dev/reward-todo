@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light" data-v="3">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🏆 奖励待办</title>
+<link rel="icon" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="奖励待办">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#6C5CE7">
+<style>
+/* ============ CSS Variables ============ */
+:root {
+  --p0:#FF3B30;--p1:#FF9500;--p2:#007AFF;--p3:#8E8E93;
+  --radius:14px;--radius-sm:10px;--radius-xs:6px;--tab-h:72px;
+  --transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"] {
+  --bg:#F2F3F7;--card:#FFFFFF;--card2:#F8F9FB;--text:#1D1D1F;
+  --text2:#636366;--text3:#AEAEB2;--border:#E5E5EA;--border2:#F2F2F7;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 30px rgba(0,0,0,.12);
+  --gradient:linear-gradient(135deg,#6C5CE7,#A78BFA);--gradient2:linear-gradient(135deg,#FD79A8,#FDCB6E);
+  --overlay:rgba(0,0,0,.3);
+}
+[data-theme="dark"] {
+  --bg:#0D0D0F;--card:#1C1C1E;--card2:#2C2C2E;--text:#E5E5EA;
+  --text2:#98989D;--text3:#636366;--border:#38383A;--border2:#2C2C2E;
+  --shadow:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 4px 12px rgba(0,0,0,.5);
+  --shadow-lg:0 8px 30px rgba(0,0,0,.6);
+  --gradient:linear-gradient(135deg,#7C6CF7,#B79AFB);--gradient2:linear-gradient(135deg,#FD89B8,#FDDB7E);
+  --overlay:rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100dvh;transition:background .3s,color .3s}
+.app{max-width:500px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+.hidden{display:none!important}
+
+/* Header */
+.header{padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;background:var(--bg);backdrop-filter:blur(20px)}
+.header h1{font-size:20px;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex:1}
+.header .badge{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:700}
+.badge-master{background:var(--p1);color:#fff}
+.icon-btn{width:34px;height:34px;border-radius:50%;border:none;background:var(--card);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);transition:var(--transition)}
+.icon-btn:active{transform:scale(.9)}
+
+/* Search bar */
+.search-bar{display:flex;align-items:center;gap:8px;padding:4px 16px 10px;position:sticky;top:52px;z-index:99;background:var(--bg)}
+.search-bar input{flex:1;padding:10px 14px 10px 34px;border:none;border-radius:20px;background:var(--card2);color:var(--text);font-size:14px;outline:none;box-shadow:var(--shadow);transition:var(--transition)}
+.search-bar input:focus{box-shadow:0 0 0 2px #6C5CE7}
+.search-bar input::placeholder{color:var(--text3)}
+.search-icon{position:absolute;left:24px;font-size:14px;color:var(--text3);pointer-events:none}
+.search-clear{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px;display:none}
+.search-clear.visible{display:block}
+
+/* Quick add */
+.quick-add{padding:8px 16px 12px}
+.quick-add input{width:100%;padding:12px 16px;border:1.5px dashed var(--border);border-radius:var(--radius);background:var(--card2);color:var(--text);font-size:14px;outline:none;transition:var(--transition)}
+.quick-add input:focus{border-color:#6C5CE7;box-shadow:0 0 0 3px rgba(108,92,231,.1)}
+.quick-add input::placeholder{color:var(--text3)}
+.quick-hint{font-size:11px;color:var(--text3);margin-top:4px;padding-left:4px}
+
+/* Content */
+.content{flex:1;overflow-y:auto;padding:0 12px 120px;-webkit-overflow-scrolling:touch}
+
+/* Sections */
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:16px 8px 8px}
+.section-header .section-title{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.section-count{font-size:12px;color:var(--text3);background:var(--card2);padding:2px 8px;border-radius:10px}
+
+/* Task item */
+.task-item{display:flex;align-items:flex-start;gap:10px;padding:14px;margin-bottom:6px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);transition:var(--transition);cursor:pointer;position:relative;overflow:hidden}
+.task-item:active{transform:scale(.985)}
+.task-item.completed{opacity:.5}
+.task-item.completed .task-title{text-decoration:line-through;color:var(--text3)}
+.task-item.selected{box-shadow:0 0 0 2px #6C5CE7}
+.task-check{appearance:none;width:22px;height:22px;min-width:22px;border:2px solid var(--border);border-radius:50%;cursor:pointer;transition:var(--transition);margin-top:1px;position:relative}
+.task-check:checked{background:#00B894;border-color:#00B894}
+.task-check:checked::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:12px;font-weight:700}
+.task-body{flex:1;min-width:0}
+.task-title{font-size:15px;font-weight:600;word-break:break-word}
+.task-desc{font-size:12px;color:var(--text2);margin-top:2px}
+.task-meta{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:11px;flex-wrap:wrap}
+.priority-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.p0{background:var(--p0)}.p1{background:var(--p1)}.p2{background:var(--p2)}.p3{background:var(--p3)}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.tag-p0{background:rgba(255,59,48,.1);color:var(--p0)}.tag-p1{background:rgba(255,149,0,.1);color:var(--p1)}
+.tag-p2{background:rgba(0,122,255,.1);color:var(--p2)}.tag-p3{background:rgba(142,142,147,.1);color:var(--p3)}
+.tag-cat{background:rgba(108,92,231,.1);color:#6C5CE7}
+.tag-recur{background:rgba(0,184,148,.1);color:#00B894}
+.deadline{color:var(--text2);display:flex;align-items:center;gap:3px}
+.deadline.urgent{color:var(--p0);font-weight:700}
+.points-badge{background:linear-gradient(135deg,#FDCB6E,#FFEAA7);color:#8B7500;padding:2px 8px;border-radius:10px;font-weight:700;font-size:11px}
+[data-theme="dark"] .points-badge{color:#FFD700}
+.timer-badge{display:flex;align-items:center;gap:3px;color:#6C5CE7;font-weight:600;font-size:11px;padding:2px 8px;background:rgba(108,92,231,.1);border-radius:10px;cursor:pointer}
+.task-actions{display:flex;flex-direction:column;gap:4px;opacity:0;transition:var(--transition)}
+.task-item:hover .task-actions{opacity:1}
+.task-actions button{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:2px}
+
+/* Subtasks */
+.subtasks{margin-top:8px;padding-left:28px}
+.subtask{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:13px;color:var(--text2)}
+.subtask-check{width:16px;height:16px;border:1.5px solid var(--border);border-radius:4px;cursor:pointer}
+.subtask-check:checked{background:#00B894;border-color:#00B894}
+.subtask-done{text-decoration:line-through;color:var(--text3)}
+
+/* FAB */
+.fab-row{position:fixed;bottom:calc(var(--tab-h) + 24px);right:16px;display:flex;flex-direction:column;gap:10px;z-index:150}
+.fab{width:48px;height:48px;border-radius:50%;border:none;color:#fff;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);box-shadow:0 4px 16px rgba(108,92,231,.4)}
+.fab:active{transform:scale(.85)}
+.fab-primary{background:var(--gradient)}
+.fab-dark{background:var(--card);color:var(--text);font-size:14px;box-shadow:var(--shadow-md)}
+
+/* Tab bar */
+.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;height:var(--tab-h);background:var(--card);display:flex;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -1px 0 var(--border);z-index:200}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px;border:none;background:none;color:var(--text3);cursor:pointer;font-size:10px;font-weight:500;transition:var(--transition)}
+.tab.active{color:#6C5CE7}
+.tab-icon{font-size:20px}
+
+/* Stats */
+.stat-row{display:flex;gap:8px;padding:8px}
+.stat-card{flex:1;background:var(--card);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow)}
+.stat-value{font-size:22px;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* Import zone */
+.drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:32px;text-align:center;background:var(--card);cursor:pointer;transition:var(--transition)}
+.drop-zone:active{background:var(--card2)}
+
+/* Rewards */
+.reward-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--card);border-radius:var(--radius);margin-bottom:6px;box-shadow:var(--shadow)}
+.reward-icon{font-size:28px}.reward-info{flex:1}.reward-name{font-size:14px;font-weight:600}
+.reward-cost{font-size:12px;color:var(--text3)}
+.btn-sm{padding:6px 14px;border-radius:14px;border:none;background:#6C5CE7;color:#fff;font-size:12px;font-weight:600;cursor:pointer}
+.btn-sm:disabled{background:var(--border);color:var(--text3);cursor:not-allowed}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:var(--overlay);display:flex;align-items:flex-end;justify-content:center;z-index:300;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}}
+.modal{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom));animation:slideUp .3s}
+@keyframes slideUp{from{transform:translateY(100%)}}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:16px;text-align:center}
+.fg{margin-bottom:12px}.fg label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.fg input,.fg textarea,.fg select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-xs);font-size:14px;background:var(--card2);color:var(--text);font-family:inherit}
+.fg textarea{min-height:60px;resize:vertical}
+.fg input:focus,.fg textarea:focus{outline:none;border-color:#6C5CE7}
+.btn-row{display:flex;gap:8px;margin-top:16px}
+.btn{flex:1;padding:12px;border:none;border-radius:var(--radius-xs);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:var(--transition)}
+.btn:active{transform:scale(.96)}
+.btn-p{background:#6C5CE7;color:#fff}.btn-s{background:var(--card2);color:var(--text)}.btn-d{background:var(--p0);color:#fff}.btn-g{background:#00B894;color:#fff}
+
+/* Priority picker */
+.prio-picker{display:flex;gap:8px}
+.prio-opt{flex:1;padding:8px;text-align:center;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;font-size:12px;font-weight:600;transition:var(--transition)}
+.prio-opt.sel{border-color:currentColor}
+.prio-opt.p0{color:var(--p0)}.prio-opt.p1{color:var(--p1)}.prio-opt.p2{color:var(--p2)}.prio-opt.p3{color:var(--p3)}
+.prio-opt.p0.sel{background:rgba(255,59,48,.08)}.prio-opt.p1.sel{background:rgba(255,149,0,.08)}
+.prio-opt.p2.sel{background:rgba(0,122,255,.08)}.prio-opt.p3.sel{background:rgba(142,142,147,.08)}
+
+/* Toast */
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:500;background:var(--text);color:var(--bg);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;animation:toastAnim 2s forwards;pointer-events:none;white-space:nowrap}
+@keyframes toastAnim{0%{opacity:0;transform:translateX(-50%) translateY(-16px)}15%{opacity:1;transform:translateX(-50%) translateY(0)}70%{opacity:1}100%{opacity:0}}
+
+/* Points fly */
+.fly{position:fixed;pointer-events:none;font-weight:900;font-size:20px;color:#00B894;animation:flyUp 1s forwards;z-index:400}
+@keyframes flyUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(1.5)}}
+
+/* Batch bar */
+.batch-bar{position:fixed;bottom:calc(var(--tab-h) + 4px);left:50%;transform:translateX(-50%);background:var(--card);border-radius:20px;padding:8px 16px;display:none;align-items:center;gap:12px;box-shadow:var(--shadow-lg);z-index:180;font-size:13px;font-weight:600}
+.batch-bar.visible{display:flex}
+.batch-bar button{background:none;border:none;color:#6C5CE7;font-weight:700;cursor:pointer;font-size:13px}
+.batch-bar .batch-clear{color:var(--p0)}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- Header -->
+  <div class="header">
+    <h1>🏆 奖励待办</h1>
+    <span class="badge badge-master hidden" id="masterBadge">主人</span>
+    <span style="font-size:12px;color:var(--text2);margin-right:4px" id="userLabel"></span>
+    <button class="icon-btn" onclick="UI.toggleTheme()" title="暗黑模式">🌓</button>
+    <button class="icon-btn" id="masterBtn" onclick="UI.quickMaster()" title="主人模式" style="background:#FF9500;color:#fff;font-size:20px">👑</button>
+    <button class="icon-btn" onclick="UI.showSettings()">⚙️</button>
+  </div>
+
+  <!-- Search -->
+  <div class="search-bar" id="searchBar">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="搜索任务... (Ctrl+K)" oninput="App.search()">
+    <button class="search-clear" id="searchClear" onclick="App.clearSearch()">✕</button>
+  </div>
+
+  <!-- Quick Add -->
+  <div class="quick-add" id="quickAdd">
+    <input type="text" id="quickInput" placeholder='快速添加，如："明天买水果 p1 工作" (Ctrl+N)' onkeydown="App.quickKey(event)">
+    <div class="quick-hint">💡 加 !高 !中 !低 设优先级 | 加 #标签 设分类 | 今天/明天/周X 设日期</div>
+  </div>
+
+  <!-- Content -->
+  <div class="content" id="content">
+    <!-- Today -->
+    <div class="section-header"><span class="section-title">📌 今天</span><span class="section-count" id="todayCount">0</span></div>
+    <div id="todayTasks"></div>
+    <!-- Upcoming -->
+    <div class="section-header"><span class="section-title">📅 即将到来</span><span class="section-count" id="upcomingCount">0</span></div>
+    <div id="upcomingTasks"></div>
+    <!-- Master bar removed, use bottom tab 👑 -->
+    <div id="masterHomePanel" style="display:none"></div>
+    <!-- Completed -->
+    <div class="section-header" id="doneHeader" style="display:none"><span class="section-title">✅ 已完成</span><span class="section-count" id="doneCount">0</span></div>
+    <div id="doneTasks"></div>
+  </div>
+
+  <!-- Calendar Panel -->
+  <div class="content hidden" id="calendarPanel">
+    <div style="overflow-x:auto"><canvas id="heatmap"></canvas></div>
+    <div id="dayDetail"></div>
+  </div>
+
+  <!-- Stats Panel -->
+  <div class="content hidden" id="statsPanel">
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-value" id="stToday">0</div><div class="stat-label">今日完成</div></div>
+      <div class="stat-card"><div class="stat-value" id="stWeek">0</div><div class="stat-label">本周完成</div></div>
+      <div class="stat-card"><div class="stat-value" id="stStreak">0</div><div class="stat-label">连续打卡</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-value" id="stTotal">0</div><div class="stat-label">累计完成</div></div>
+      <div class="stat-card"><div class="stat-value" id="stRate">0%</div><div class="stat-label">完成率</div></div>
+      <div class="stat-card"><div class="stat-value" id="stPoints">0</div><div class="stat-label">积分</div></div>
+    </div>
+  </div>
+
+  <!-- Import Panel -->
+  <div class="content hidden" id="importPanel">
+    <div class="drop-zone" id="dropZone">🖼️ 点击上传截图 OCR 识别<input type="file" id="fileInput" accept="image/*" hidden></div>
+    <div id="ocrResult" style="margin-top:12px"></div>
+  </div>
+
+  <!-- Rewards Panel -->
+  <div class="content hidden" id="rewardsPanel">
+    <div style="text-align:center;padding:20px;background:var(--gradient);border-radius:var(--radius);color:#fff;margin-bottom:12px">
+      <div style="font-size:36px;font-weight:900" id="pointsDisplay">0</div>
+      <div style="font-size:12px;opacity:.8">可用积分</div>
+    </div>
+    <div id="rewardList"></div>
+    <button class="btn btn-p" style="width:100%;margin-top:8px" onclick="UI.showRewardForm()">+ 添加奖励</button>
+  </div>
+
+  <!-- Batch bar -->
+  <div class="batch-bar" id="batchBar">
+    <span id="batchCount">0 选中</span>
+    <button onclick="App.batchComplete()">✅ 完成</button>
+    <button onclick="App.batchDelete()">🗑️ 删除</button>
+    <button class="batch-clear" onclick="App.batchClear()">取消</button>
+  </div>
+
+  <!-- FABs -->
+  <div class="fab-row" id="fabRow">
+    <button class="fab fab-dark" onclick="UI.toggleTheme()">🌓</button>
+    <button class="fab fab-primary" onclick="UI.showTaskForm()">+</button>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button class="tab active" data-tab="tasks"><span class="tab-icon">📋</span>任务</button>
+    <button class="tab" data-tab="calendar"><span class="tab-icon">📅</span>日历</button>
+    <button class="tab" data-tab="stats"><span class="tab-icon">📊</span>统计</button>
+    <button class="tab" data-tab="import"><span class="tab-icon">📸</span>导入</button>
+    <button class="tab" data-tab="rewards"><span class="tab-icon">🎁</span>奖励</button>
+  </div>
+
+  <!-- Master Panel -->
+  <div class="content hidden" id="masterPanel"></div>
+</div>
+
+<div id="modalBox"></div>
+<div id="toastBox"></div>
+
+<script>
+/* ================================================================
+ * 奖励待办 v3 — 暗黑模式 | 优先级 | 子任务 | 快速添加 | 搜索
+ *             键盘快捷键 | 重复任务 | 通知提醒 | 音效 | 批量操作
+ * ================================================================ */
+
+const PRIORITY = [
+  { key:'p0',label:'P0 紧急',css:'p0',emoji:'🔴',color:'#FF3B30' },
+  { key:'p1',label:'P1 高',css:'p1',emoji:'🟠',color:'#FF9500' },
+  { key:'p2',label:'P2 中',css:'p2',emoji:'🔵',color:'#007AFF' },
+  { key:'p3',label:'P3 低',css:'p3',emoji:'⚪',color:'#8E8E93' },
+];
+const CATS = [
+  { key:'work',label:'💼 工作' },{ key:'life',label:'🏠 生活' },{ key:'study',label:'📚 学习' },
+  { key:'health',label:'💪 健康' },{ key:'goal',label:'🎯 目标' },{ key:'other',label:'📌 其他' },
+];
+const DEF_REWARDS = [
+  { title:'看一部电影',cost:50,icon:'🎬' },{ title:'喝杯奶茶',cost:30,icon:'🧋' },{ title:'买一本新书',cost:80,icon:'📚' },
+];
+
+function uid(){return crypto.randomUUID?crypto.randomUUID():'xxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:r&0x3|0x8).toString(16)})}
+function fmtDate(iso){if(!iso)return'';const d=new Date(iso);return`${d.getMonth()+1}/${d.getDate()}`}
+function fmtTime(iso){if(!iso)return'';const d=new Date(iso);return`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
+function fmtDur(sec){const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function daysAgo(iso){return Math.ceil((new Date()-new Date(iso))/86400000)}
+function isToday(iso){return new Date(iso).toDateString()===new Date().toDateString()}
+
+// Sound
+const Sfx = { ctx:null, get(){if(!this.ctx)this.ctx=new(window.AudioContext||window.webkitAudioContext)();return this.ctx},
+  ding(){try{const c=this.get(),o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(880,c.currentTime);o.frequency.setValueAtTime(1100,c.currentTime+.08);g.gain.setValueAtTime(.3,c.currentTime);g.gain.exponentialRampToValueAtTime(.01,c.currentTime+.3);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.3)}catch{}},
+};
+
+// Data store
+const Store = {
+  key:'rt_data',cfgKey:'rt_cfg',
+  get(){try{return JSON.parse(localStorage.getItem(this.key))||this.def()}catch{return this.def()}},
+  def(){return{tasks:[],deleted:[],rewards:DEF_REWARDS.map(r=>({...r,id:uid()})),total:0,life:0,sessions:[],version:0}},
+  set(d){localStorage.setItem(this.key,JSON.stringify(d))},
+  cfg(){try{return JSON.parse(localStorage.getItem(this.cfgKey))||{}}catch{return{}}},
+  setCfg(c){localStorage.setItem(this.cfgKey,JSON.stringify(c))}
+};
+
+// State
+const S = {
+  data:Store.get(),tab:'tasks',search:'',dark:false,viewing:null,role:'user',user:'',token:'',room:'default',
+  selected:new Set(),timerTask:null,timerSec:0,timerInt:null,
+};
+
+// ============ App ============
+const App = {
+  init(){
+    S.dark = Store.cfg().dark || false;
+    document.documentElement.setAttribute('data-theme',S.dark?'dark':'light');
+    this.bindTabs();this.bindKeys();this.render();this.startClock();
+    if(S.token) this.loadFromServer();
+    // Check for deadline notifications
+    this.checkDeadlines();
+    setInterval(()=>this.checkDeadlines(),60000);
+  },
+
+  bindTabs(){document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>this.switchTab(b.dataset.tab)));
+    const dz=document.getElementById('dropZone');if(dz){dz.addEventListener('click',()=>document.getElementById('fileInput').click());
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over')});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');if(e.dataTransfer.files[0])this.handleOCR(e.dataTransfer.files[0])})}
+    document.getElementById('fileInput').addEventListener('change',e=>{if(e.target.files[0])this.handleOCR(e.target.files[0])});
+  },
+
+  bindKeys(){document.addEventListener('keydown',e=>{
+    if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+    if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();document.getElementById('searchInput').focus()}
+    if((e.ctrlKey||e.metaKey)&&e.key==='n'){e.preventDefault();document.getElementById('quickInput').focus()}
+    if((e.ctrlKey||e.metaKey)&&e.key==='d'){e.preventDefault();UI.toggleTheme()}
+  })},
+
+  switchTab(tab){S.tab=tab;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+    ['tasks','calendar','stats','import','rewards'].forEach(t=>{
+      const el=document.getElementById(t==='tasks'?'content':t+'Panel');
+      if(el)el.classList.toggle('hidden',t!==tab);
+    });
+    document.getElementById('searchBar').classList.toggle('hidden',tab!=='tasks');
+    document.getElementById('quickAdd').classList.toggle('hidden',tab!=='tasks');
+    document.getElementById('fabRow').classList.toggle('hidden',tab==='calendar'||tab==='stats');
+    if(tab==='calendar')this.renderCalendar();
+    if(tab==='stats')this.renderStats();
+    if(tab==='master'&&S.role==='master')UI.loadMasterUsers();
+    if(tab==='tasks')this.render();
+  },
+
+  render(){
+    let tasks=S.data.tasks.filter(t=>!t.completed);
+    // Search filter
+    if(S.search){const q=S.search.toLowerCase();tasks=tasks.filter(t=>t.title.toLowerCase().includes(q)||(t.desc||'').toLowerCase().includes(q))}
+    // Sort by priority then deadline
+    const po={p0:0,p1:1,p2:2,p3:3};
+    tasks.sort((a,b)=>(po[a.priority||'p3']-po[b.priority||'p3'])||(new Date(a.deadline)-new Date(b.deadline)));
+
+    const now=new Date();const today=[];const upcoming=[];
+    tasks.forEach(t=>{const d=new Date(t.deadline);if(d.toDateString()===now.toDateString()||d<now)today.push(t);else upcoming.push(t)});
+
+    document.getElementById('todayTasks').innerHTML=today.length?today.map(t=>this.taskHTML(t)).join(''):'<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">今天没有任务 🎉</div>';
+    document.getElementById('upcomingTasks').innerHTML=upcoming.length?upcoming.map(t=>this.taskHTML(t)).join(''):'<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">没有待办事项</div>';
+    document.getElementById('todayCount').textContent=today.length;
+    document.getElementById('upcomingCount').textContent=upcoming.length;
+
+    // Completed
+    const done=S.data.tasks.filter(t=>t.completed);
+    const dh=document.getElementById('doneHeader');const dt=document.getElementById('doneTasks');
+    if(done.length){dh.style.display='flex';dt.innerHTML=done.slice(-20).map(t=>this.taskHTML(t)).join('');document.getElementById('doneCount').textContent=done.length}
+    else{dh.style.display='none';dt.innerHTML=''}
+
+    this.bindTaskEvents();
+  },
+
+  taskHTML(t){
+    const now=new Date();const dl=new Date(t.deadline);const over=!t.completed&&dl<now;
+    const diff=Math.ceil((dl-now)/86400000);
+    let dlText='';
+    if(t.completed)dlText='✅ '+fmtDate(t.completedAt);
+    else if(over)dlText='⚠️ 逾期'+Math.abs(diff)+'天';
+    else if(diff===0)dlText='⏰ 今天';
+    else if(diff===1)dlText='📅 明天';
+    else if(diff<=7)dlText='📅 '+diff+'天后';
+    else dlText='📅 '+fmtDate(t.deadline);
+
+    const p=PRIORITY.find(p=>p.key===t.priority);
+    const prioTag=p?`<span class="tag tag-${p.css}">${p.label}</span>`:'';
+    const cat=CATS.find(c=>c.key===t.category);
+    const catTag=cat?`<span class="tag tag-cat">${cat.label}</span>`:'';
+    const recurTag=t.recur?`<span class="tag tag-recur">🔄 ${({daily:'每天',weekly:'每周',monthly:'每月'})[t.recur]||t.recur}</span>`:'';
+    const timerTag=t.workDuration?`<span class="timer-badge" data-id="${t.id}" onclick="event.stopPropagation();App.startTimer('${t.id}')">⏱️ ${fmtDur(t.workDuration)}</span>`:`<span class="timer-badge" data-id="${t.id}" onclick="event.stopPropagation();App.startTimer('${t.id}')">⏱️</span>`;
+    const subtasksCount=t.subtasks?.length?` 📎${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}`:'';
+
+    const sel=S.selected.has(t.id)?' selected':'';
+    return `<div class="task-item ${over?'overdue':''} ${t.completed?'completed':''}${sel}" data-id="${t.id}" onclick="App.onTaskClick(event,'${t.id}')">
+      <input type="checkbox" class="task-check" data-id="${t.id}" ${t.completed?'checked':''} onclick="event.stopPropagation();App.toggle('${t.id}',this.checked)">
+      <div class="task-body">
+        <div class="task-title">${esc(t.title)}${subtasksCount}</div>
+        ${t.desc?`<div class="task-desc">${esc(t.desc)}</div>`:''}
+        <div class="task-meta">
+          <span class="priority-dot ${p?p.css:'p3'}"></span>
+          ${prioTag}${catTag}${recurTag}
+          <span class="deadline ${over?'urgent':''}">${dlText}</span>
+          <span class="points-badge">+${t.points||10}</span>
+          ${!t.completed?timerTag:''}
+        </div>
+        ${t.subtasks&&t.subtasks.length?`<div class="subtasks">${t.subtasks.map((s,i)=>`<div class="subtask"><input type="checkbox" class="subtask-check" ${s.done?'checked':''} data-tid="${t.id}" data-sid="${i}" onclick="event.stopPropagation();App.toggleSub('${t.id}',${i},this.checked)"><span class="${s.done?'subtask-done':''}">${esc(s.title)}</span></div>`).join('')}</div>`:''}
+      </div>
+      <div class="task-actions">
+        <button onclick="event.stopPropagation();UI.showTaskForm('${t.id}')" title="编辑">✏️</button>
+        <button onclick="event.stopPropagation();App.remove('${t.id}')" title="删除">🗑️</button>
+      </div>
+    </div>`;
+  },
+
+  bindTaskEvents(){
+    document.querySelectorAll('.task-item').forEach(el=>{
+      let pressTimer;
+      el.addEventListener('touchstart',()=>{pressTimer=setTimeout(()=>{App.toggleSelect(el.dataset.id)},500)});
+      el.addEventListener('touchend',()=>clearTimeout(pressTimer));
+      el.addEventListener('touchmove',()=>clearTimeout(pressTimer));
+    });
+  },
+
+  onTaskClick(e,id){
+    if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON'||e.target.closest('.timer-badge'))return;
+    if(e.shiftKey||e.metaKey){this.toggleSelect(id);return}
+    UI.showTaskForm(id);
+  },
+
+  toggleSelect(id){
+    if(S.selected.has(id))S.selected.delete(id);else S.selected.add(id);
+    document.getElementById('batchBar').classList.toggle('visible',S.selected.size>0);
+    document.getElementById('batchCount').textContent=S.selected.size+' 选中';
+    this.render();
+  },
+
+  batchComplete(){S.selected.forEach(id=>{const t=S.data.tasks.find(t=>t.id===id);if(t){t.completed=true;t.completedAt=new Date().toISOString();S.data.total+=(t.points||10);S.data.life+=(t.points||10)}});S.selected.clear();Store.set(S.data);this.render();this.batchClear()},
+  batchDelete(){S.selected.forEach(id=>{const idx=S.data.tasks.findIndex(t=>t.id===id);if(idx>=0){const t=S.data.tasks[idx];t.deletedAt=new Date().toISOString();S.data.deleted.push(t);S.data.tasks.splice(idx,1)}});S.selected.clear();Store.set(S.data);this.render();this.batchClear();UI.toast('已删除')},
+  batchClear(){S.selected.clear();document.getElementById('batchBar').classList.remove('visible');this.render()},
+
+  toggle(id,checked){
+    const t=S.data.tasks.find(t=>t.id===id);if(!t)return;
+    t.completed=checked;t.completedAt=checked?new Date().toISOString():null;
+    if(checked){S.data.total+=(t.points||10);S.data.life+=(t.points||10);Sfx.ding();UI.toast('+'+t.points+'分! 🎉')}
+    else S.data.total=Math.max(0,S.data.total-(t.points||10));
+    // Handle recurring
+    if(checked&&t.recur){this.createRecurring(t)}
+    Store.set(S.data);this.render();this.saveToServer();
+  },
+
+  createRecurring(t){
+    const next=new Date();const add={daily:1,weekly:7,monthly:30}[t.recur]||0;if(!add)return;
+    next.setDate(next.getDate()+add);next.setHours(23,59,0,0);
+    S.data.tasks.push({id:uid(),title:t.title,desc:t.desc||'',deadline:next.toISOString(),completed:false,completedAt:null,points:t.points||10,priority:t.priority,category:t.category,recur:t.recur,workDuration:0,subtasks:(t.subtasks||[]).map(s=>({title:s.title,done:false})),createdAt:new Date().toISOString()});
+  },
+
+  toggleSub(tid,si,checked){
+    const t=S.data.tasks.find(t=>t.id===tid);if(!t||!t.subtasks)return;
+    t.subtasks[si].done=checked;Store.set(S.data);this.render();
+  },
+
+  remove(id){
+    const idx=S.data.tasks.findIndex(t=>t.id===id);if(idx<0)return;
+    const t=S.data.tasks[idx];t.deletedAt=new Date().toISOString();
+    S.data.deleted.push(t);S.data.tasks.splice(idx,1);
+    Store.set(S.data);this.render();this.saveToServer();UI.toast('已删除');
+  },
+
+  search(){S.search=document.getElementById('searchInput').value;document.getElementById('searchClear').classList.toggle('visible',!!S.search);this.render()},
+  clearSearch(){document.getElementById('searchInput').value='';this.search()},
+
+  quickKey(e){
+    if(e.key==='Enter'){const v=e.target.value.trim();if(v){this.quickAdd(v);e.target.value=''}}
+  },
+
+  quickAdd(raw){
+    let title=raw,priority='p3',category='other',recur=null,points=10,deadlineHint='';
+    // Parse priority
+    for(const p of PRIORITY.slice().reverse()){const re=new RegExp(`[!！]\\s*${p.key.slice(1)}|${p.label}|${p.emoji}`,'i');if(re.test(title)){priority=p.key;title=title.replace(re,'').trim();break}}
+    // Parse category
+    for(const c of CATS){if(title.includes(c.label)||title.includes('#'+c.key)){category=c.key;title=title.replace(new RegExp(c.label+'|#'+c.key,'g'),'').trim();break}}
+    // Parse date
+    const now=new Date();let dl=new Date(now);dl.setHours(23,59,0,0);
+    if(/今天/.test(title)){title=title.replace(/今天/,'').trim()}
+    else if(/明天/.test(title)){dl.setDate(dl.getDate()+1);title=title.replace(/明天/,'').trim()}
+    else if(/后天/.test(title)){dl.setDate(dl.getDate()+2);title=title.replace(/后天/,'').trim()}
+    else{const dm=title.match(/周([一二三四五六日])/);if(dm){const wm={一:1,二:2,三:3,四:4,五:5,六:6,日:0};const t=wm[dm[1]];const c=now.getDay();let d=t-c;if(d<=0)d+=7;dl.setDate(dl.getDate()+d);title=title.replace(/周[一二三四五六日]/,'').trim()}
+    else{const m=title.match(/(\d{1,2})[月\/](\d{1,2})/);if(m){dl=new Date(now.getFullYear(),parseInt(m[1])-1,parseInt(m[2]),23,59,0);if(dl<now)dl.setFullYear(dl.getFullYear()+1);title=title.replace(/\d{1,2}[月\/]\d{1,2}/,'').trim()}}}
+    // Parse recur
+    if(/每天|每日/.test(title)){recur='daily';title=title.replace(/每天|每日/,'').trim();points=5}
+    if(/每周/.test(title)){recur='weekly';title=title.replace(/每周/,'').trim();points=20}
+    if(/每月/.test(title)){recur='monthly';title=title.replace(/每月/,'').trim();points=50}
+    // Parse points
+    const pm=title.match(/(\d+)分/);if(pm){points=parseInt(pm[1]);title=title.replace(/\d+分/,'').trim()}
+    if(!title){UI.toast('请输入任务名称');return}
+
+    S.data.tasks.push({id:uid(),title:title.trim(),desc:'',deadline:dl.toISOString(),completed:false,completedAt:null,points,priority,category,recur,workDuration:0,subtasks:[],createdAt:new Date().toISOString()});
+    Store.set(S.data);this.render();this.saveToServer();UI.toast('已添加: '+title);Sfx.ding();
+  },
+
+  startTimer(id){
+    const t=S.data.tasks.find(t=>t.id===id);if(!t||t.completed)return;
+    if(S.timerInt){clearInterval(S.timerInt);S.timerInt=null}
+    S.timerTask=id;S.timerSec=t.workDuration||0;
+    S.timerInt=setInterval(()=>{S.timerSec++;this.updateTimerUI()},1000);
+    this.updateTimerUI();
+  },
+
+  updateTimerUI(){
+    const t=S.data.tasks.find(t=>t.id===S.timerTask);
+    if(t)t.workDuration=S.timerSec;
+    this.render();
+  },
+
+  stopTimer(){if(S.timerInt){clearInterval(S.timerInt);S.timerInt=null;Store.set(S.data);this.saveToServer()}},
+
+  checkDeadlines(){
+    if(!('Notification' in window)||Notification.permission!=='granted')return;
+    S.data.tasks.filter(t=>!t.completed).forEach(t=>{
+      const diff=new Date(t.deadline)-new Date();
+      if(diff>0&&diff<3600000){new Notification('⏰ 任务即将到期',{body:t.title,icon:'favicon.svg'})}
+    });
+  },
+
+  // Calendar
+  renderCalendar(){
+    const c=document.getElementById('heatmap');const ctx=c.getContext('2d');const now=new Date();const year=now.getFullYear();
+    const cs=11,cg=2,tc=cs+cg,cols=53,rows=7;
+    c.width=cols*tc+28;c.height=rows*tc+10;
+    const ys=new Date(year,0,1);const sd=ys.getDay();const start=new Date(ys);start.setDate(start.getDate()-(sd===0?6:sd-1));
+    const comp={};S.data.tasks.forEach(t=>{if(t.completedAt){const d=t.completedAt.slice(0,10);comp[d]=(comp[d]||0)+1}});
+    c._cells={};
+    for(let col=0;col<cols;col++)for(let row=0;row<rows;row++){
+      const d=new Date(start);d.setDate(d.getDate()+col*7+row);const ds=d.toISOString().slice(0,10);const cnt=comp[ds]||0;
+      let fill;if(d>now)fill='#F0F0F5';else if(cnt===0)fill='#EDF0F5';else if(cnt===1)fill='#A29BFE';else if(cnt===2)fill='#6C5CE7';else if(cnt<=4)fill='#4834D4';else fill='#2C1B9E';
+      const x=24+col*tc,y=row*tc;
+      ctx.fillStyle=fill;ctx.beginPath();ctx.roundRect(x,y,cs,cs,2);ctx.fill();
+      c._cells[`${col},${row}`]={dateStr:ds,count:cnt,x,y,size:cs};
+    }
+    ctx.fillStyle='#B2BEC3';ctx.font='9px sans-serif';
+    ['一','','三','','五','','日'].forEach((l,i)=>{if(l)ctx.fillText(l,2,i*tc+cs-1)});
+    c.onclick=e=>{const r=c.getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top;for(const k in c._cells){const cell=c._cells[k];if(mx>=cell.x&&mx<=cell.x+cell.size&&my>=cell.y&&my<=cell.y+cell.size){this.showDay(cell);return}}}
+  },
+
+  showDay(cell){
+    const tasks=S.data.tasks.filter(t=>t.completedAt&&t.completedAt.slice(0,10)===cell.dateStr);
+    document.getElementById('dayDetail').innerHTML=`<div style="background:var(--card);border-radius:var(--radius);padding:12px;margin-top:8px;box-shadow:var(--shadow)"><b>📌 ${cell.dateStr} · ${cell.count} 项</b>${tasks.map(t=>`<div style="padding:6px 0;font-size:13px">✅ ${esc(t.title)} <span class="points-badge">+${t.points||10}</span></div>`).join('')}</div>`;
+  },
+
+  // Stats
+  renderStats(){
+    const now=new Date();const today=now.toISOString().slice(0,10);
+    const monday=new Date(now);monday.setDate(now.getDate()-(now.getDay()||7)+1);monday.setHours(0,0,0,0);
+    const tasks=S.data.tasks;
+    document.getElementById('stToday').textContent=tasks.filter(t=>t.completedAt&&t.completedAt.slice(0,10)===today).length;
+    document.getElementById('stWeek').textContent=tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>=monday).length;
+    document.getElementById('stTotal').textContent=tasks.filter(t=>t.completed).length;
+    document.getElementById('stRate').textContent=tasks.length?Math.round(tasks.filter(t=>t.completed).length/tasks.length*100)+'%':'0%';
+    document.getElementById('stPoints').textContent=S.data.total;
+    // Streak
+    const ds=new Set();tasks.forEach(t=>{if(t.completedAt)ds.add(t.completedAt.slice(0,10))});
+    let streak=0;const d=new Date();d.setDate(d.getDate()+1);
+    while(true){d.setDate(d.getDate()-1);if(ds.has(d.toISOString().slice(0,10)))streak++;else break}
+    document.getElementById('stStreak').textContent=streak;
+  },
+
+  // OCR
+  async handleOCR(file){
+    const c=document.getElementById('ocrResult');c.innerHTML='<div style="text-align:center;padding:16px">识别中...</div>';
+    if(!window.Tesseract){c.innerHTML='<div style="text-align:center;padding:16px">加载 OCR 引擎...</div>';
+      try{await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s)})}catch(e){c.innerHTML='OCR 加载失败';return}}
+    try{const u=URL.createObjectURL(file);const{data:{text}}=await Tesseract.recognize(u,'chi_sim+eng');URL.revokeObjectURL(u);
+    const lines=text.split('\n').map(l=>l.trim()).filter(l=>l.length>1);
+    c.innerHTML=`识别到 ${lines.length} 条:<br>${lines.map((l,i)=>`<div style="padding:6px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="ocr_${i}" checked><label for="ocr_${i}">${esc(l)}</label></div>`).join('')}<button class="btn btn-p" style="width:100%;margin-top:8px" onclick="App.importOCR([${lines.map((_,i)=>i).join(',')}])">导入选中</button>`;
+    window._ocrLines=lines}catch(e){c.innerHTML='识别失败: '+e.message}
+  },
+
+  importOCR(idxs){
+    const lines=window._ocrLines||[];idxs.forEach(i=>{const cb=document.getElementById('ocr_'+i);if(cb&&cb.checked)App.quickAdd(lines[i])});
+    document.getElementById('ocrResult').innerHTML='';UI.toast('已导入');
+  },
+
+  // Server sync
+  async saveToServer(){if(!S.token||S.viewing)return;try{await fetch((Store.cfg().server||location.origin)+'/api/data',{method:'POST',headers:{'Content-Type':'application/json','X-Auth-Token':S.token},body:JSON.stringify({data:S.data})})}catch{}},
+  async loadFromServer(){if(!S.token)return;try{const r=await fetch((Store.cfg().server||location.origin)+'/api/data',{headers:{'X-Auth-Token':S.token}});const j=await r.json();if(j.success&&j.data){S.data={...j.data,rewards:(j.data.rewards||[]).map(r=>r.id?r:{...r,id:uid()})};this.render()}}catch{}},
+
+  startClock(){setInterval(()=>{if(S.tab==='tasks'&&!document.querySelector('#modalBox>*'))this.render()},30000)},
+};
+
+// ============ UI ============
+const UI = {
+  toggleTheme(){
+    S.dark=!S.dark;document.documentElement.setAttribute('data-theme',S.dark?'dark':'light');
+    Store.setCfg({...Store.cfg(),dark:S.dark});
+  },
+
+  showTaskForm(id){
+    const t=id?S.data.tasks.find(t=>t.id===id):null;const isEdit=!!t;
+    const now=new Date();const defDL=t?t.deadline.slice(0,16):new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,23,59).toISOString().slice(0,16);
+    const html=`<div class="modal-bg" id="taskModal"><div class="modal" onclick="event.stopPropagation()">
+      <h3>${isEdit?'✏️ 编辑':'➕ 新建'}任务</h3>
+      <div class="fg"><label>名称 *</label><input id="tfTitle" value="${esc(isEdit?t.title:'')}" placeholder="任务名" autofocus></div>
+      <div class="fg"><label>描述</label><textarea id="tfDesc">${esc(isEdit?t.desc||'':'')}</textarea></div>
+      <div class="fg"><label>截止</label><input type="datetime-local" id="tfDL" value="${defDL}"></div>
+      <div class="fg"><label>优先级</label><div class="prio-picker">${PRIORITY.map(p=>`<div class="prio-opt ${p.css} ${(isEdit?t.priority:'p3')===p.key?'sel':''}" onclick="UI.selPrio(this,'${p.key}')">${p.emoji}<br>${p.label}</div>`).join('')}</div></div>
+      <div class="fg"><label>分类</label><div style="display:flex;flex-wrap:wrap;gap:6px">${CATS.map(c=>`<span class="prio-opt ${(isEdit?t.category:'other')===c.key?'sel':''}" style="flex:none;padding:6px 12px;font-size:12px" onclick="UI.selCat(this,'${c.key}')">${c.label}</span>`).join('')}</div></div>
+      <div class="fg"><label>重复</label><select id="tfRecur"><option value="" ${!isEdit||!t.recur?'selected':''}>不重复</option><option value="daily" ${isEdit&&t.recur==='daily'?'selected':''}>🔄 每天</option><option value="weekly" ${isEdit&&t.recur==='weekly'?'selected':''}>🔄 每周</option><option value="monthly" ${isEdit&&t.recur==='monthly'?'selected':''}>🔄 每月</option></select></div>
+      <div class="fg"><label>积分</label><input type="number" id="tfPts" value="${isEdit?t.points||10:10}" min="1"></div>
+      <div class="fg"><label>子任务（每行一个）</label><textarea id="tfSubs" placeholder="子任务1&#10;子任务2">${isEdit&&t.subtasks?t.subtasks.map(s=>s.title).join('\n'):''}</textarea></div>
+      <div class="btn-row"><button class="btn btn-s" onclick="UI.close()">取消</button><button class="btn btn-p" onclick="UI.save('${isEdit?id:''}')">保存</button></div>
+    </div></div>`;
+    this.modal(html);
+    document.getElementById('taskModal').addEventListener('click',()=>UI.close());
+    window._selPrio=isEdit?t.priority||'p3':'p3';
+    window._selCat=isEdit?t.category||'other':'other';
+  },
+
+  selPrio(el,key){document.querySelectorAll('.prio-picker .prio-opt').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');window._selPrio=key},
+  selCat(el,key){el.parentElement.querySelectorAll('.prio-opt').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');window._selCat=key},
+
+  save(id){
+    const title=document.getElementById('tfTitle').value.trim();
+    if(!title){this.toast('请输入名称');return}
+    const desc=document.getElementById('tfDesc').value.trim();
+    const deadline=document.getElementById('tfDL').value;
+    const points=parseInt(document.getElementById('tfPts').value)||10;
+    const priority=window._selPrio||'p3';
+    const category=window._selCat||'other';
+    const recur=document.getElementById('tfRecur').value||null;
+    const subRaw=document.getElementById('tfSubs').value.trim();
+    const subtasks=subRaw?subRaw.split('\n').map(s=>s.trim()).filter(s=>s).map(s=>{
+      const exist=id?S.data.tasks.find(t=>t.id===id)?.subtasks?.find(st=>st.title===s):null;
+      return {title:s,done:exist?exist.done:false};
+    }):[];
+
+    if(id){
+      const t=S.data.tasks.find(t=>t.id===id);
+      if(t){Object.assign(t,{title,desc,deadline:new Date(deadline).toISOString(),points,priority,category,recur,subtasks})}
+    }else{
+      S.data.tasks.unshift({id:uid(),title,desc,deadline:new Date(deadline).toISOString(),completed:false,completedAt:null,points,priority,category,recur,workDuration:0,subtasks,createdAt:new Date().toISOString()});
+    }
+    Store.set(S.data);App.render();App.saveToServer();this.close();this.toast(id?'已更新':'已创建');
+  },
+
+  showRewardForm(){
+    const html=`<div class="modal-bg" id="rwModal"><div class="modal" onclick="event.stopPropagation()"><h3>🎁 添加奖励</h3>
+      <div class="fg"><label>图标</label><input id="rfIcon" value="🎁"></div>
+      <div class="fg"><label>名称</label><input id="rfTitle" placeholder="看电影"></div>
+      <div class="fg"><label>积分</label><input type="number" id="rfPts" value="50"></div>
+      <div class="btn-row"><button class="btn btn-s" onclick="UI.close()">取消</button><button class="btn btn-p" onclick="UI.saveReward()">添加</button></div></div></div>`;
+    this.modal(html);document.getElementById('rwModal').addEventListener('click',()=>UI.close());
+  },
+
+  saveReward(){
+    const t=document.getElementById('rfTitle').value.trim();if(!t){this.toast('请输入名称');return}
+    S.data.rewards.push({id:uid(),title:t,icon:document.getElementById('rfIcon').value||'🎁',cost:parseInt(document.getElementById('rfPts').value)||50});
+    Store.set(S.data);this.close();App.renderRewards();this.toast('已添加');
+  },
+
+  showSettings(){
+    const cfg=Store.cfg();
+    const masterBadge=S.role==='master'?'<span style="background:#FF9500;color:#fff;padding:2px 8px;border-radius:6px;font-size:10px">👑 主人</span>':'';
+    const html=`<div class="modal-bg" id="setModal"><div class="modal" onclick="event.stopPropagation()"><h3>⚙️ 设置 ${masterBadge}</h3>
+      <div class="fg"><label>服务器</label><input id="sfServer" value="${esc(cfg.server||'')}" placeholder="自动检测"></div>
+      <div class="fg"><label>房间码</label><input id="sfRoom" value="${esc(S.room||'default')}"></div>
+      <div class="fg"><label>用户名</label><input id="sfUser" value="${esc(S.user||'')}"></div>
+      <div class="fg"><label>密码</label><input type="password" id="sfPass"></div>
+      <button class="btn btn-p" style="width:100%;margin-bottom:4px" onclick="UI.saveSettings()">💾 保存并登录</button>
+      <div style="border-top:1px solid var(--border);margin:8px 0;padding-top:8px">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">👑 主人模式</div>
+        <div class="fg"><label>主人密码</label><input type="password" id="sfMasterPass" placeholder="输入主人密码"></div>
+        <button class="btn btn-p" style="width:100%;background:var(--p1)" onclick="UI.masterLogin()">👑 主人登录</button>
+        ${S.role==='master'?`<button class="btn btn-s" style="width:100%;margin-top:4px" onclick="UI.showMasterPanel()">👥 查看所有用户</button>`:''}
+      </div>
+      <div style="border-top:1px solid var(--border);margin:8px 0;padding-top:8px">
+        <div style="display:flex;gap:6px"><button class="btn btn-s btn-sm" onclick="UI.exportTXT()">📄 TXT</button><button class="btn btn-s btn-sm" onclick="UI.exportJSON()">📤 JSON</button><button class="btn btn-s btn-sm" onclick="UI.importJSON()">📥 导入</button></div>
+      </div>
+      <button class="btn btn-d" style="width:100%" onclick="UI.confirmClear()">🗑️ 清空</button>
+      <input type="file" id="importFile" accept=".json" hidden onchange="UI.doImport(event)">
+    </div></div>`;
+    this.modal(html);document.getElementById('setModal').addEventListener('click',()=>UI.close());
+  },
+
+  saveSettings(){
+    const s=document.getElementById('sfServer').value.trim();const r=document.getElementById('sfRoom').value.trim();
+    const u=document.getElementById('sfUser').value.trim();const p=document.getElementById('sfPass').value.trim();
+    Store.setCfg({...Store.cfg(),server:s||location.origin});
+    S.room=r||'default';S.user=u;
+    if(s&&u&&p)UI.login(s,r,u,p);
+    this.close();this.toast('已保存');
+  },
+
+  async login(server,room,user,pass){
+    try{const r=await fetch(server+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:room,username:user,password:pass})});
+    const j=await r.json();if(j.success){S.token=j.token;S.role=j.role||'user';App.loadFromServer();this.toast('登录成功')}else this.toast(j.message)}catch{this.toast('连接失败')}
+  },
+
+  async masterHomeLogin(){
+    const pass=document.getElementById('masterHomePass').value.trim();
+    if(!pass){this.toast('请输入密码');return}
+    const server=Store.cfg().server||location.origin;
+    try{const r=await fetch(server+'/api/master-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:S.room||'default',masterPassword:pass})});
+    const j=await r.json();if(j.success){S.token=j.token;S.role='master';S.user='__master__';
+    document.getElementById('masterHomePass').value='';
+    document.getElementById('masterHomeLabel').textContent='已激活 👑';
+    document.getElementById('masterBadge').classList.remove('hidden');
+    this.toast('👑 主人模式');
+    this.loadMasterHomePanel()}else this.toast(j.message)}catch{this.toast('连接失败')}
+  },
+
+  async loadMasterHomePanel(){
+    const server=Store.cfg().server||location.origin;
+    const panel=document.getElementById('masterHomePanel');
+    try{const r=await fetch(server+'/api/admin/users',{headers:{'X-Auth-Token':S.token}});
+    const j=await r.json();
+    if(!j.users||!j.users.length){panel.innerHTML='';return}
+    panel.style.display='block';
+    panel.innerHTML=`<div style="font-size:13px;font-weight:700;margin:8px 0 4px">👥 所有用户</div>`+
+      j.users.map(u=>`<div class="reward-item" onclick="UI.viewMasterHomeUser('${u.username}')" style="cursor:pointer;margin-bottom:4px">
+        <span style="font-size:24px">👤</span><div class="reward-info"><div class="reward-name">${esc(u.username)}</div>
+        <div class="reward-cost">📋${u.taskCount} ✅${u.completedCount} 🗑️${u.deletedCount} ⭐${u.totalPoints||0}</div></div>
+        <span style="color:var(--text3);font-size:20px">→</span></div>`).join('');
+  }catch{}
+  },
+
+  async viewMasterHomeUser(user){
+    const server=Store.cfg().server||location.origin;
+    try{const r=await fetch(server+'/api/admin/data/'+user,{headers:{'X-Auth-Token':S.token}});
+    const j=await r.json();if(!j.success)return;
+    S.viewing=user;S.data=j.data;App.render();
+    this.toast('查看 '+user+' 中 · 刷新页面恢复')}catch{this.toast('失败')}
+  },
+
+  async masterTabLogin(){
+    const pass=document.getElementById('masterTabPass').value.trim();
+    if(!pass){this.toast('请输入密码');return}
+    const server=Store.cfg().server||location.origin;
+    try{const r=await fetch(server+'/api/master-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:S.room||'default',masterPassword:pass})});
+    const j=await r.json();if(j.success){S.token=j.token;S.role='master';S.user='__master__';
+    this.toast('👑 主人模式');document.getElementById('masterBadge').classList.remove('hidden');
+    UI.loadMasterUsers()}else this.toast(j.message)}catch{this.toast('连接失败')}
+  },
+
+  async loadMasterUsers(){
+    const server=Store.cfg().server||location.origin;
+    try{const r=await fetch(server+'/api/admin/users',{headers:{'X-Auth-Token':S.token}});
+    const j=await r.json();
+    const mc=document.getElementById('masterContent');const ml=document.getElementById('masterUserList');
+    if(!j.users||!j.users.length){mc.style.display='block';ml.style.display='none';return}
+    mc.style.display='none';ml.style.display='block';
+    ml.innerHTML=`<div style="font-weight:700;margin-bottom:8px">👥 用户列表 (${j.users.length})</div>`+
+      j.users.map(u=>`<div class="reward-item" onclick="UI.viewMasterUser('${u.username}')" style="cursor:pointer">
+        <span style="font-size:28px">👤</span><div class="reward-info"><div class="reward-name">${esc(u.username)}</div>
+        <div class="reward-cost">📋${u.taskCount} ✅${u.completedCount} 🗑️${u.deletedCount} ⭐${u.totalPoints||0}</div></div>
+        <span style="color:var(--text3)">查看→</span></div>`).join('');
+    document.getElementById('masterUserData').style.display='none';
+  }catch{this.toast('加载失败')}
+  },
+
+  async viewMasterUser(user){
+    const server=Store.cfg().server||location.origin;
+    try{const r=await fetch(server+'/api/admin/data/'+user,{headers:{'X-Auth-Token':S.token}});
+    const j=await r.json();if(!j.success)return;
+    const md=document.getElementById('masterUserData');md.style.display='block';
+    md.innerHTML=`<div style="font-weight:700;margin:8px 0">👤 ${esc(user)} 的数据
+      <button class="btn btn-s btn-sm" style="margin-left:8px" onclick="UI.loadMasterUsers();document.getElementById('masterUserData').style.display='none'">← 返回列表</button></div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px">📋 ${j.data.tasks?.length||0} 任务 | 🗑️ ${j.data.deletedTasks?.length||0} 已删</div>
+      ${(j.data.deletedTasks||[]).slice(0,20).map(t=>`<div class="reward-item" style="opacity:.6"><span>🗑️</span><div class="reward-info"><div class="reward-name" style="text-decoration:line-through">${esc(t.title)}</div><div class="reward-cost">${fmtDate(t.deletedAt)} 删除</div></div></div>`).join('')}`;
+  }catch{this.toast('加载失败')}
+  },
+
+  quickMaster(){
+    const html=`<div class="modal-bg" id="qmModal"><div class="modal" onclick="event.stopPropagation()"><h3>👑 主人登录</h3>
+      <div class="fg"><label>主人密码</label><input type="password" id="qmPass" placeholder="输入主人密码" autofocus></div>
+      <div class="btn-row"><button class="btn btn-s" onclick="UI.close()">取消</button><button class="btn btn-p" style="background:var(--p1)" onclick="UI.doQuickMaster()">登录</button></div>
+    </div></div>`;
+    this.modal(html);document.getElementById('qmModal').addEventListener('click',()=>UI.close());
+    document.getElementById('qmPass').addEventListener('keydown',e=>{if(e.key==='Enter')UI.doQuickMaster()});
+  },
+
+  async doQuickMaster(){
+    const pass=document.getElementById('qmPass').value.trim();
+    if(!pass){this.toast('请输入密码');return}
+    const server=Store.cfg().server||location.origin;
+    try{const r=await fetch(server+'/api/master-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:S.room||'default',masterPassword:pass})});
+    const j=await r.json();if(j.success){S.token=j.token;S.role='master';S.user='__master__';
+    this.close();this.toast('👑 主人模式');App.loadFromServer();
+    document.getElementById('masterBadge').classList.remove('hidden')}else this.toast(j.message)}catch{this.toast('连接失败')}
+  },
+
+  async masterLogin(){
+    const pass=document.getElementById('sfMasterPass').value.trim();
+    if(!pass){this.toast('请输入主人密码');return}
+    const server=document.getElementById('sfServer').value.trim()||location.origin;
+    const room=document.getElementById('sfRoom').value.trim()||'default';
+    try{const r=await fetch(server+'/api/master-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:room,masterPassword:pass})});
+    const j=await r.json();if(j.success){S.token=j.token;S.role='master';S.user='__master__';S.room=j.roomCode||room;
+    Store.setCfg({...Store.cfg(),server});this.toast('👑 主人模式已激活');this.close();App.loadFromServer();
+    document.getElementById('masterBadge').classList.remove('hidden');}else this.toast(j.message)}catch{this.toast('连接失败')}
+  },
+
+  async showMasterPanel(){
+    this.close();
+    const server=Store.cfg().server||location.origin;
+    try{const r=await fetch(server+'/api/admin/users',{headers:{'X-Auth-Token':S.token}});
+    const j=await r.json();if(!j.users)return;
+    const html=`<div class="modal-bg" id="mpModal"><div class="modal" onclick="event.stopPropagation()"><h3>👥 用户列表</h3>
+      ${j.users.map(u=>`<div class="reward-item" onclick="UI.viewUser('${u.username}')" style="cursor:pointer">
+        <span style="font-size:28px">👤</span><div class="reward-info"><div class="reward-name">${esc(u.username)}</div><div class="reward-cost">📋${u.taskCount}任务 ✅${u.completedCount}完成 🗑️${u.deletedCount}删除</div></div><span style="color:var(--text3)">查看→</span></div>`).join('')}
+      <button class="btn btn-s" style="width:100%;margin-top:8px" onclick="UI.close()">关闭</button></div></div>`;
+    this.modal(html);document.getElementById('mpModal').addEventListener('click',()=>UI.close())}catch{this.toast('加载失败')}
+  },
+
+  async viewUser(user){
+    const server=Store.cfg().server||location.origin;
+    try{const r=await fetch(server+'/api/admin/data/'+user,{headers:{'X-Auth-Token':S.token}});
+    const j=await r.json();if(!j.success)return;
+    S.viewing=user;S.data=j.data;App.render();this.close();
+    this.toast('正在查看 '+user+' 的数据');
+    document.getElementById('masterBadge').classList.remove('hidden')}catch{this.toast('加载失败')}
+  },
+
+  exportTXT(){
+    let txt='奖励待办 导出\n========\n\n【待完成】\n';
+    S.data.tasks.filter(t=>!t.completed).forEach(t=>txt+=`☐ ${t.title} | ${fmtDate(t.deadline)} | P${(t.priority||'p3').slice(1)}\n`);
+    txt+='\n【已完成】\n';S.data.tasks.filter(t=>t.completed).forEach(t=>txt+=`✅ ${t.title}\n`);
+    const b=new Blob([txt]);const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='tasks.txt';a.click();this.toast('已导出');
+  },
+
+  exportJSON(){
+    const b=new Blob([JSON.stringify(S.data,null,2)]);const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='backup.json';a.click();this.toast('已导出');
+  },
+
+  importJSON(){document.getElementById('importFile').click()},
+
+  doImport(e){
+    const f=e.target.files[0];if(!f)return;const r=new FileReader();
+    r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.tasks){S.data={...S.data,...d};Store.set(S.data);App.render();this.toast('已导入')}}catch{this.toast('格式错误')}};
+    r.readAsText(f);e.target.value='';
+  },
+
+  confirmClear(){
+    const html=`<div class="modal-bg" id="clrModal"><div class="modal" onclick="event.stopPropagation()"><h3>⚠️ 确认清空</h3><p style="text-align:center;color:var(--text2)">清空所有任务和记录？</p>
+      <div class="btn-row"><button class="btn btn-s" onclick="UI.close()">取消</button><button class="btn btn-d" onclick="UI.doClear()">清空</button></div></div></div>`;
+    this.modal(html);document.getElementById('clrModal').addEventListener('click',()=>UI.close());
+  },
+
+  doClear(){S.data=Store.def();Store.set(S.data);App.render();this.close();this.toast('已清空')},
+
+  modal(html){this.close();document.getElementById('modalBox').innerHTML=html},
+  close(){document.getElementById('modalBox').innerHTML=''},
+
+  toast(msg){const e=document.createElement('div');e.className='toast';e.textContent=msg;document.getElementById('toastBox').appendChild(e);setTimeout(()=>e.remove(),2200)},
+};
+
+// Rewards rendering
+App.renderRewards = function(){
+  document.getElementById('pointsDisplay').textContent=S.data.total;
+  const c=document.getElementById('rewardList');
+  if(!S.data.rewards.length){c.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">暂无奖励</div>';return}
+  c.innerHTML=S.data.rewards.map(r=>`<div class="reward-item"><span class="reward-icon">${r.icon||'🎁'}</span><div class="reward-info"><div class="reward-name">${esc(r.title)}</div><div class="reward-cost">${r.cost} 积分</div></div><button class="btn-sm" ${S.data.total<r.cost?'disabled':''} onclick="App.redeem('${r.id}')">${S.data.total>=r.cost?'兑换':'不足'}</button></div>`).join('');
+};
+
+App.redeem = function(id){
+  const r=S.data.rewards.find(r=>r.id===id);if(!r||S.data.total<r.cost)return;
+  S.data.total-=r.cost;Store.set(S.data);App.renderRewards();UI.toast('兑换 '+r.title+' 🎉');Sfx.ding();
+};
+
+// Init
+document.addEventListener('DOMContentLoaded',()=>App.init());
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
