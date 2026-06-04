@@ -719,79 +719,11 @@ const UI = {
     const j=await r.json();if(j.success){S.token=j.token;S.role=j.role||'user';App.loadFromServer();this.toast('登录成功')}else this.toast(j.message)}catch{this.toast('连接失败')}
   },
 
-  async masterHomeLogin(){
-    const pass=document.getElementById('masterHomePass').value.trim();
-    if(!pass){this.toast('请输入密码');return}
-    const server=Store.cfg().server||location.origin;
-    try{const r=await fetch(server+'/api/master-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:S.room||'default',masterPassword:pass})});
-    const j=await r.json();if(j.success){S.token=j.token;S.role='master';S.user='__master__';
-    document.getElementById('masterHomePass').value='';
-    document.getElementById('masterHomeLabel').textContent='已激活 👑';
-    document.getElementById('masterBadge').classList.remove('hidden');
-    this.toast('👑 主人模式');
-    this.loadMasterHomePanel()}else this.toast(j.message)}catch{this.toast('连接失败')}
-  },
 
-  async loadMasterHomePanel(){
-    const server=Store.cfg().server||location.origin;
-    const panel=document.getElementById('masterHomePanel');
-    try{const r=await fetch(server+'/api/admin/users',{headers:{'X-Auth-Token':S.token}});
-    const j=await r.json();
-    if(!j.users||!j.users.length){panel.innerHTML='';return}
-    panel.style.display='block';
-    panel.innerHTML=`<div style="font-size:13px;font-weight:700;margin:8px 0 4px">👥 所有用户</div>`+
-      j.users.map(u=>`<div class="reward-item" onclick="UI.viewMasterHomeUser('${u.username}')" style="cursor:pointer;margin-bottom:4px">
-        <span style="font-size:24px">👤</span><div class="reward-info"><div class="reward-name">${esc(u.username)}</div>
-        <div class="reward-cost">📋${u.taskCount} ✅${u.completedCount} 🗑️${u.deletedCount} ⭐${u.totalPoints||0}</div></div>
-        <span style="color:var(--text3);font-size:20px">→</span></div>`).join('');
-  }catch{}
-  },
 
-  async viewMasterHomeUser(user){
-    const server=Store.cfg().server||location.origin;
-    try{const r=await fetch(server+'/api/admin/data/'+user,{headers:{'X-Auth-Token':S.token}});
-    const j=await r.json();if(!j.success)return;
-    S.viewing=user;S.data=j.data;App.render();
-    this.toast('查看 '+user+' 中 · 刷新页面恢复')}catch{this.toast('失败')}
-  },
 
-  async masterTabLogin(){
-    const pass=document.getElementById('masterTabPass').value.trim();
-    if(!pass){this.toast('请输入密码');return}
-    const server=Store.cfg().server||location.origin;
-    try{const r=await fetch(server+'/api/master-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:S.room||'default',masterPassword:pass})});
-    const j=await r.json();if(j.success){S.token=j.token;S.role='master';S.user='__master__';
-    this.toast('👑 主人模式');document.getElementById('masterBadge').classList.remove('hidden');
-    UI.loadMasterUsers()}else this.toast(j.message)}catch{this.toast('连接失败')}
-  },
 
-  async loadMasterUsers(){
-    const server=Store.cfg().server||location.origin;
-    try{const r=await fetch(server+'/api/admin/users',{headers:{'X-Auth-Token':S.token}});
-    const j=await r.json();
-    const mc=document.getElementById('masterContent');const ml=document.getElementById('masterUserList');
-    if(!j.users||!j.users.length){mc.style.display='block';ml.style.display='none';return}
-    mc.style.display='none';ml.style.display='block';
-    ml.innerHTML=`<div style="font-weight:700;margin-bottom:8px">👥 用户列表 (${j.users.length})</div>`+
-      j.users.map(u=>`<div class="reward-item" onclick="UI.viewMasterUser('${u.username}')" style="cursor:pointer">
-        <span style="font-size:28px">👤</span><div class="reward-info"><div class="reward-name">${esc(u.username)}</div>
-        <div class="reward-cost">📋${u.taskCount} ✅${u.completedCount} 🗑️${u.deletedCount} ⭐${u.totalPoints||0}</div></div>
-        <span style="color:var(--text3)">查看→</span></div>`).join('');
-    document.getElementById('masterUserData').style.display='none';
-  }catch{this.toast('加载失败')}
-  },
 
-  async viewMasterUser(user){
-    const server=Store.cfg().server||location.origin;
-    try{const r=await fetch(server+'/api/admin/data/'+user,{headers:{'X-Auth-Token':S.token}});
-    const j=await r.json();if(!j.success)return;
-    const md=document.getElementById('masterUserData');md.style.display='block';
-    md.innerHTML=`<div style="font-weight:700;margin:8px 0">👤 ${esc(user)} 的数据
-      <button class="btn btn-s btn-sm" style="margin-left:8px" onclick="UI.loadMasterUsers();document.getElementById('masterUserData').style.display='none'">← 返回列表</button></div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:4px">📋 ${j.data.tasks?.length||0} 任务 | 🗑️ ${j.data.deletedTasks?.length||0} 已删</div>
-      ${(j.data.deletedTasks||[]).slice(0,20).map(t=>`<div class="reward-item" style="opacity:.6"><span>🗑️</span><div class="reward-info"><div class="reward-name" style="text-decoration:line-through">${esc(t.title)}</div><div class="reward-cost">${fmtDate(t.deletedAt)} 删除</div></div></div>`).join('')}`;
-  }catch{this.toast('加载失败')}
-  },
 
   quickMaster(){
     const html=`<div class="modal-bg" id="qmModal"><div class="modal" onclick="event.stopPropagation()"><h3>👑 主人登录</h3>

@@ -23,6 +23,7 @@ const multer = require('multer');
 const { createWorker } = require('tesseract.js');
 
 const app = express();
+app.use(require('compression')());
 const PORT = process.env.PORT || 3456;
 const DATA_DIR = path.join(__dirname, 'data');
 const MASTER_PASSWORD = process.env.MASTER_PASS || '888266';
