@@ -384,7 +384,7 @@ function uid() {
   });
 }
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🏆 奖励待办同步服务器 v2 已启动: http://localhost:${PORT}`);
   console.log(`   数据目录: ${DATA_DIR}`);
   console.log(`   主人密码: ${MASTER_PASSWORD}`);
